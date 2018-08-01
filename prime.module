@@ -93,7 +93,7 @@ function prime_node_type_form_submit(&$form, &$form_state)
 function prime_node_view($node, $view_mode, $langcode)
 {
 	$message = prime_get_custom_message($node->type);
-	var_dump(variable_get('prime custom message'));
+
 	if (!empty($message))
 	{
 		drupal_set_message($message);
