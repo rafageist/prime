@@ -1,0 +1,7 @@
+name = Prime
+description = List the five latest prime nodes in a custom block
+package = rafageist
+core = 7.x
+dependencies[] = drupal:block
+dependencies[] = drupal:system (>= 7.40)
+files[] = prime.test

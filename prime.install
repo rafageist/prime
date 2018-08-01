@@ -1,0 +1,5 @@
+<?php
+
+function prime_uninstall() {
+  variable_del('prime_custom_messages');
+}

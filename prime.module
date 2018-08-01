@@ -1,0 +1,128 @@
+<?php
+/**
+ * @file
+ * Module file for prime.
+ *
+ * @author @rafageist
+ */
+
+define ('PRIMES', [1,2,3,5,7,11,13,17,19,23,29,31]);
+
+// Task B-1
+function prime_block_info()
+{
+	$blocks[0]['info'] = t('Prime nodes');
+	return $blocks;
+}
+
+function prime_block_view($delta = '') {
+
+  $nodes = prime_get_nodes();
+  $block['subject'] = t('Prime nodes');
+  $block['content'] = prime_contents($nodes);
+
+  // Task B-2
+  drupal_add_css(drupal_get_path('module', 'prime').'/css/prime.css');
+  drupal_add_js(drupal_get_path('module', 'prime').'/js/prime.js');
+
+  return $block;
+}
+
+function prime_get_nodes(){
+
+	$db_type = Database::getConnection()->databaseType();
+	$wh = 'EXTRACT(DAY FROM(n.created)) = ';
+
+	switch ($db_type) {
+		case( 'mysql' ):
+			break;
+		case( 'pgsql' ):
+			$wh = "extract(day from to_timestamp(n.created)) = ";
+	}
+
+	$primes = PRIMES;
+	$where = $wh . implode(' OR '.$wh, $primes);
+
+	$nodes = db_select('node', 'n', array('fetch' => PDO::FETCH_ASSOC))
+		->fields('n', ['nid', 'title'])
+		->range(0, 5)
+		->where($where)
+		->orderBy('created', 'DESC')
+		->execute()->fetchAll();
+
+	return $nodes;
+}
+
+function prime_contents($nodes) {
+  $html = '<ul>';
+  foreach ($nodes as $node)
+  {
+	  $html .= '<li><a href="/node/'.$node['nid'].'">'.$node['title'].'</a>';
+  }
+
+  $html .= '</ul>';
+  return $html;
+}
+
+
+// Task B-3
+
+function prime_form_node_type_form_alter( &$form, &$form_state) {
+	$form['display'] = [
+		'#type' => 'fieldset',
+		'#title' => t('Message'),
+		'#weight' => -100
+	];
+
+	$form['display']['custom_message'] = [
+		'#type' => 'textarea',
+		'#title' => t('Custom message'),
+		'#value' => prime_get_custom_message($form['#node_type']->type)
+	];
+
+}
+
+function prime_node_type_form(&$form) {
+	$form['#submit'][] = 'prime_node_type_form_submit';
+}
+
+function prime_node_type_form_submit(&$form, &$form_state)
+{
+	prime_set_custom_message(
+		$form['values']['#node_type']->type,
+		$form['values']['custom_message']);
+
+	drupal_set_message('Custom message was updated for content type');
+}
+
+function prime_node_view($node, $view_mode, $langcode)
+{
+	$message = prime_get_custom_message($node->type);
+
+	if (!empty($message))
+	{
+		drupal_set_message($message);
+	}
+}
+
+
+function prime_get_custom_message($type)
+{
+	$messages = variable_get('prime_custom_messages', []);
+	if (isset($messages[$type])) return $messages[$type];
+	return '';
+}
+
+function prime_set_custom_message($type, $message){
+	$messages = variable_get('prime_custom_messages', []);
+	$messages[$type] = $message;
+	variable_set('prime_custom_messages', $messages);
+}
+
+// Task B-4
+function prime_node_validate($node, $form) {
+
+	$day = date('d', strtotime($node->date));
+	if (!in_array($day, PRIMES))
+		form_set_error('prime', t('The published date must be a prime'));
+}
