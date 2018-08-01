@@ -87,14 +87,13 @@ function prime_node_type_form_submit(&$form, &$form_state)
 {
 	prime_set_custom_message(
 		$form['#node_type']->type,
-		$form['display']['custom_message']);
-
-	drupal_set_message('Custom message was updated for content type');
+		$_POST['custom_message']);
 }
 
 function prime_node_view($node, $view_mode, $langcode)
 {
 	$message = prime_get_custom_message($node->type);
+	var_dump(variable_get('prime custom message'));
 	if (!empty($message))
 	{
 		drupal_set_message($message);
@@ -113,6 +112,8 @@ function prime_set_custom_message($type, $message){
 	$messages = variable_get('prime_custom_messages', []);
 	$messages[$type] = $message;
 	variable_set('prime_custom_messages', $messages);
+
+	drupal_set_message('Custom message '.$message.' was updated for content type '.$type);
 }
 
 // Task B-4
