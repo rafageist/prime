@@ -80,9 +80,6 @@ function prime_form_node_type_form_alter( &$form, &$form_state) {
 		'#value' => prime_get_custom_message($form['#node_type']->type)
 	];
 
-}
-
-function prime_node_type_form(&$form) {
 	$form['#submit'][] = 'prime_node_type_form_submit';
 }
 
